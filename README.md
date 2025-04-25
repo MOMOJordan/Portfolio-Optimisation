@@ -18,3 +18,35 @@ Mean Variance Optimisation
 
 ![image](https://github.com/MOMOJordan/Portfolio-Optimisation/assets/86100448/95949c43-8a77-4678-bfd6-4d81ff534ee4)
 
+
+import numpy as np
+import cvxpy as cp
+
+# Parameters
+n = 3  # dimension of each Wi
+k = 4  # number of Wi vectors
+
+# CVXPY variable
+W = cp.Variable(n * k)
+
+# Covariance blocks
+Cov1 = np.eye(n)
+Cov2 = 0.5 * np.ones((n, n))
+big_cov = np.block([[Cov1, Cov2],
+                    [Cov2, Cov1]])  # Shape: (2n, 2n)
+
+# Build selector matrix S (shape: (k-1, k))
+selector = np.zeros((k - 1, k))
+for i in range(k - 1):
+    selector[i, i] = 1
+    selector[i, i + 1] = 1
+
+# Expand with Kronecker product to create block selector
+S = np.kron(selector, np.eye(n))  # Shape: ((k-1)*n, k*n)
+
+# Build final quadratic form matrix
+M = S.T @ np.kron(np.eye(k - 1), big_cov) @ S  # Shape: (k*n, k*n)
+
+# Final CVXPY expression
+expr = cp.quad_form(W, M)
+
