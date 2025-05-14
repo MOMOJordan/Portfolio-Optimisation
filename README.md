@@ -115,3 +115,36 @@ fig.update_layout(
 
 fig.show()
 
+import numpy as np
+import plotly.graph_objects as go
+
+# Sample data
+x = np.linspace(0, 10, 100)
+y = np.sin(x)
+color_vals = np.cos(x)  # This will determine the color of each segment
+
+# Normalize color values for mapping to colorscale
+color_norm = (color_vals - color_vals.min()) / (color_vals.max() - color_vals.min())
+
+# Generate line segments and colors
+segments = []
+for i in range(len(x) - 1):
+    segments.append(go.Scatter(
+        x=[x[i], x[i+1]],
+        y=[y[i], y[i+1]],
+        mode='lines',
+        line=dict(
+            color=color_norm[i],  # normalized value
+            colorscale='Viridis',
+            cmin=0,
+            cmax=1,
+            width=3
+        ),
+        showlegend=False,
+        hoverinfo='none'
+    ))
+
+# Create the figure
+fig = go.Figure(segments)
+fig.update_layout(title='Colored Line Based on Separate Array')
+fig.show()
