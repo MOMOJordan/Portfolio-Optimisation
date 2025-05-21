@@ -137,7 +137,14 @@ problem.solve(
         "MSK_DPAR_INTPNT_TOL_REL_GAP": 1e-8,   # Interior-point relative gap
     }
 )
-
+Key MOSEK parameters to set when using Big-M with potentially large values:
+Parameter name	Purpose	Suggested setting for Big-M problems (~1e4 scale)
+MSK_IPAR_INTPNT_SCALING	Enable automatic scaling	1 (enabled) — always keep on for stability
+MSK_DPAR_INTPNT_CO_TOL_DFEAS	Dual feasibility tolerance	1e-6 to 1e-4 (loosen if needed for speed)
+MSK_DPAR_INTPNT_CO_TOL_PFEAS	Primal feasibility tolerance	1e-6 to 1e-4
+MSK_DPAR_INTPNT_CO_TOL_MU_RED	Complementarity reduction tolerance	1e-6 to 1e-4
+MSK_IPAR_MIO_TOL_REL_GAP	Relative MIP gap tolerance	1e-2 (1%) for faster but still decent MIP solutions
+MSK_DPAR_MIO_MAX_TIME	Time limit (seconds)	Set as needed (e.g., 60 or 300)
 
 # Generate line segments and colors
 segments = []
