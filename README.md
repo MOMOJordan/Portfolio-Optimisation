@@ -126,6 +126,19 @@ color_vals = np.cos(x)  # This will determine the color of each segment
 # Normalize color values for mapping to colorscale
 color_norm = (color_vals - color_vals.min()) / (color_vals.max() - color_vals.min())
 
+problem.solve(
+    solver=cp.MOSEK,
+    mosek_params={
+        # Tighter tolerances for more accurate MIQP solutions
+        "MSK_DPAR_MIO_TOL_REL_GAP": 1e-6,      # Relative MIP gap
+        "MSK_DPAR_MIO_TOL_ABS_GAP": 1e-8,      # Absolute MIP gap
+        "MSK_DPAR_INTPNT_TOL_PFEAS": 1e-8,     # Primal feasibility
+        "MSK_DPAR_INTPNT_TOL_DFEAS": 1e-8,     # Dual feasibility
+        "MSK_DPAR_INTPNT_TOL_REL_GAP": 1e-8,   # Interior-point relative gap
+    }
+)
+
+
 # Generate line segments and colors
 segments = []
 for i in range(len(x) - 1):
