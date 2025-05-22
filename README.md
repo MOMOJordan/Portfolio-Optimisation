@@ -146,6 +146,12 @@ MSK_DPAR_INTPNT_CO_TOL_MU_RED	Complementarity reduction tolerance	1e-6 to 1e-4
 MSK_IPAR_MIO_TOL_REL_GAP	Relative MIP gap tolerance	1e-2 (1%) for faster but still decent MIP solutions
 MSK_DPAR_MIO_MAX_TIME	Time limit (seconds)	Set as needed (e.g., 60 or 300)
 cp.norm_inf(w[:, t+1] - w[:, t]) <= epsilon + M * (1 - z[t, 0])
+for t in range(T - 1):
+    for i in range(n_assets):
+        constraints += [
+            w[i, t+1] - w[i, t] <= epsilon + M[i] * (1 - z[t,0]),
+            w[i, t] - w[i, t+1] <= epsilon + M[i] * (1 - z[t,0])
+        ]
 
 # Generate line segments and colors
 segments = []
