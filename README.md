@@ -152,6 +152,56 @@ for t in range(T - 1):
             w[i, t+1] - w[i, t] <= epsilon + M[i] * (1 - z[t,0]),
             w[i, t] - w[i, t+1] <= epsilon + M[i] * (1 - z[t,0])
         ]
+import os
+import cvxpy as cp
+import optuna
+import multiprocessing
+import psutil
+
+# ✅ 1. Limit MOSEK to 1 thread globally (must be set before solving)
+os.environ["MOSEK_NUM_THREADS"] = "1"
+
+# ✅ 2. Function to solve a CVXPY problem using MOSEK with limited threads
+def objective(trial):
+    # Example portfolio data
+    n_assets = 3
+    expected_returns = [0.05, 0.07, 0.06]
+    cov_matrix = [[0.1, 0.01, 0.02],
+                  [0.01, 0.12, 0.03],
+                  [0.02, 0.03, 0.15]]
+
+    risk_aversion = trial.suggest_float("risk_aversion", 0.1, 2.0, step=0.1)
+
+    w = cp.Variable(n_assets)
+    ret = cp.sum(cp.multiply(expected_returns, w))
+    risk = cp.quad_form(w, cov_matrix)
+    objective_fn = cp.Maximize(ret - risk_aversion * risk)
+    constraints = [cp.sum(w) == 1, w >= 0]
+    prob = cp.Problem(objective_fn, constraints)
+
+    # MOSEK with 1 thread
+    prob.solve(solver=cp.MOSEK, mosek_params={"MSK_IPAR_NUM_THREADS": 1})
+
+    return -prob.value  # minimize negative return
+
+# ✅ 3. Limit Optuna parallelism
+max_cpus = multiprocessing.cpu_count()
+mosek_threads = 1
+optuna_jobs = max(1, max_cpus // mosek_threads)  # Safe number of parallel jobs
+
+# Print diagnostics
+print(f"Total logical CPUs: {max_cpus}")
+print(f"MOSEK threads per trial: {mosek_threads}")
+print(f"Optuna parallel jobs allowed: {optuna_jobs}")
+print(f"Current CPU usage: {psutil.cpu_percent(interval=1)}%")
+
+# ✅ 4. Create and run Optuna study (with limited CPU usage)
+study = optuna.create_study(direction="minimize")
+study.optimize(objective, n_trials=10, n_jobs=optuna_jobs)
+
+# ✅ 5. Print best result
+print("Best parameters:", study.best_params)
+print("Best value:", study.best_value)
 
 # Generate line segments and colors
 segments = []
